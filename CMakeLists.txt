@@ -37,12 +37,11 @@ set(OSX_APP_BUNDLE 0)
 ## This is needed when cross-compiling
 list(APPEND CMAKE_FIND_ROOT_PATH "${PROJECT_SOURCE_DIR}/extern")
 
-set(ENV{GLM_ROOT_DIR}    "${PROJECT_SOURCE_DIR}/extern/glm")
-
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
     message(STATUS "Building for Windows.")
     set(PLATFORM PL_WINDOWS)
 
+    set(ENV{GLM_ROOT_DIR}    "${PROJECT_SOURCE_DIR}/extern/glm")
     set(ENV{SDL2DIR}         "${PROJECT_SOURCE_DIR}/extern/sdl2")
     set(ENV{FMT_ROOT}    "${PROJECT_SOURCE_DIR}/extern/fmt")
 
