@@ -1,0 +1,34 @@
+#pragma once
+
+
+// ************ Useful includes, definitions and macros
+
+// Version
+#define PROJECT_NAME    "${CMAKE_PROJECT_NAME}"
+
+// spdlog configuration
+#define SPDLOG_NO_NAME
+#define SPDLOG_NO_THREAD_ID // Might be useful to enable later but atm meh
+#define SPDLOG_FMT_EXTERNAL
+
+// Platforms
+#define PL_DEFAULT  ${PL_DEFAULT}
+#define PL_WINDOWS  ${PL_WINDOWS}
+#define PL_LINUX    ${PL_LINUX}
+#define PL_OSX      ${PL_OSX}
+
+#define PLATFORM ${PLATFORM}
+
+#define OSX_APP_BUNDLE ${OSX_APP_BUNDLE}
+
+#if PLATFORM==PL_WINDOWS
+    #define PLATFORM_WINDOWS
+    #define PATH_SEP '\\'
+#elif PLATFORM==PL_LINUX
+    #define PLATFORM_LINUX
+    #define PATH_SEP '/'
+#elif PLATFORM==PL_OSX
+    #define PLATFORM_OSX
+    #define PATH_SEP '/'
+    #define APP_NAME        "${APPLE_APP_NAME}"
+#endif
