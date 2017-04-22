@@ -22,7 +22,7 @@ namespace ORGame
         void start();
         bool event_handler(const ORCore::Event &event);
         void handle_song();
-        void update();
+        void update(double dt);
         void prep_render_obj();
         void render();
         void resize(int width, int height);

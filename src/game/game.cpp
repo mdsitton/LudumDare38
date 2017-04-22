@@ -105,10 +105,11 @@ namespace ORGame
         GLenum error;
         while (m_running)
         {
-            m_fpsTime += m_clock.tick();
+            double dt = m_clock.tick();
+            m_fpsTime += dt;
             m_eventPump.process();
 
-            update();
+            update(dt);
             render();
 
             do
@@ -174,7 +175,7 @@ namespace ORGame
         return true;
     }
 
-    void GameManager::update()
+    void GameManager::update(double dt)
     {
         auto obj = m_renderer.get_object(m_boxID);
 
