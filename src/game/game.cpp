@@ -69,7 +69,7 @@ namespace ORGame
 
         m_program = m_renderer.add_program(ORCore::Shader(vertInfo), ORCore::Shader(fragInfo));
         m_texture = m_renderer.add_texture(ORCore::loadSTB("data/blank.png"));
-        m_texture2 = m_renderer.add_texture(ORCore::loadSTB("data/icon.png"));
+        m_texture2 = m_renderer.add_texture(ORCore::loadSTB("data/planet1.png"));
 
         resize(m_width, m_height);
 
