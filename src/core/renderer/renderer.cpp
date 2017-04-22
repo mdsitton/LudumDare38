@@ -18,9 +18,18 @@ namespace ORCore
         };
     }
 
-
     RenderObject::RenderObject()
     {
+
+    }
+
+    void RenderObject::set_state(RenderState stateItem, int value)
+    {
+        try {
+            state.at(stateItem) = value;
+        } catch (std::out_of_range &err) {
+            state.insert({stateItem, value});
+        }
     }
 
     void RenderObject::set_scale(glm::vec3&& scale)
@@ -35,6 +44,9 @@ namespace ORCore
 
     void RenderObject::set_primitive_type(Primitive primitive)
     {
+
+        set_state(RenderState::primitive, primitive);
+
         mesh.primitive = primitive;
         if (primitive == Primitive::triangle)
         {
@@ -54,14 +66,22 @@ namespace ORCore
         mesh.vertices = geometry;
     }
 
-    void RenderObject::set_texture(int _texture)
+    void RenderObject::set_texture(int texture)
     {
-        texture = _texture;
+        set_state(RenderState::texture, texture);
     }
 
-    void RenderObject::set_program(int _program)
+    void RenderObject::set_program(int program)
     {
-        program = _program;
+        set_state(RenderState::program, program);
+    }
+
+    void RenderObject::set_point_size(int pointSize)
+    {
+        if (mesh.primitive == Primitive::point)
+        {
+            set_state(RenderState::point_size, pointSize);
+        }
     }
 
     void RenderObject::update()
@@ -76,25 +96,39 @@ namespace ORCore
 
     }
 
-    int Renderer::find_batch(int texture, int program)
+    int Renderer::find_batch(const std::map<RenderState, int>& batchState)
     {
         // Find existing batch that isnt full or already submitted.
-        for (int i = 0; i < m_batchesInfo.size(); i++)
+
+        for (auto &batch : m_batches)
         {
-            if (m_batchesInfo[i].committed == false && m_batchesInfo[i].texture == texture && m_batchesInfo[i].program == program)
+            auto& bState = batch->get_state();
+            if (!batch->is_committed() && bState.size() == batchState.size() &&
+                std::equal(std::begin(batchState), std::end(batchState), std::begin(bState),
+                    [](auto& a, auto& b){return a.first == b.first && a.second == b.second;}))
             {
-                return i;
+                return batch->get_id();
             }
         }
 
-        // std::cout << "No batches found creating new batch: " << std::endl;
+        int id = m_batches.size();
 
-        // If the above couldnt find a batch create one.
-        BatchInfo batchInfo = {false, program, texture};
-        int id = m_batchesInfo.size();
-        m_batchesInfo.push_back(batchInfo);
-        m_batches.push_back(std::make_unique<Batch>(m_programs[program].get(), m_textures[texture].get(), 2048));
-        return id;
+        m_logger->debug("No batches found creating new batch. Total batches: {}", m_batches.size()+1);
+
+        try
+        {
+            m_batches.push_back(
+                std::make_unique<Batch>(
+                    m_programs[batchState.at(RenderState::program)].get(),
+                    m_textures[batchState.at(RenderState::texture)].get(),
+                    2048, id));
+
+            auto& batch = m_batches.back();
+            batch->set_state(batchState);
+            return id;
+        } catch (std::out_of_range &err) {
+            throw std::runtime_error("Error: batch could not be created missing critital data");
+        }
     }
 
     RenderObject* Renderer::get_object(int objID)
@@ -111,7 +145,8 @@ namespace ORCore
 
     int Renderer::add_object(const RenderObject& objIn)
     {
-        int batchId = find_batch(objIn.texture, objIn.program);
+
+        int batchId = find_batch(objIn.state);
 
         int objID = m_objects.size();
         m_objects.push_back(objIn);
@@ -125,8 +160,7 @@ namespace ORCore
         while (m_batches[batchId]->add_mesh(obj.mesh, obj.modelMatrix) != true)
         {
             m_batches[batchId]->commit(); // commit that batch as it is full.
-            m_batchesInfo[batchId].committed = true;
-            batchId = find_batch(objIn.texture, objIn.program); // find or create the next batch
+            batchId = find_batch(objIn.state); // find or create the next batch
             obj.batchID = batchId;
         }
 
@@ -163,14 +197,14 @@ namespace ORCore
     // commit all remaining batches.
     void Renderer::commit()
     {
-        for (int i = 0; i < m_batchesInfo.size(); i++)
+        for (auto &batch : m_batches)
         {
-            if (m_batchesInfo[i].committed == false)
+            if (!batch->is_committed())
             {
-                m_batches[i]->commit();
+                batch->commit();
             }
         }
-        // m_logger->info("Batches: {}", m_batchesInfo.size());
+        // m_logger->info("Batches: {}", m_batches.size());
 
         // GLint size;
         // glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &size);
@@ -184,26 +218,23 @@ namespace ORCore
     void Renderer::render()
     {
         // TODO - Do sorting of batches to minimize state changes.
-        int currentProgram = -1;
-        for (int i = 0; i < m_batchesInfo.size(); i++)
+        for (auto &batch : m_batches)
         {
-            currentProgram = m_batchesInfo[i].program;
-            auto &program = m_programs[currentProgram];
-
+            ShaderProgram* program = batch->get_program();
             program->use();
             for (auto &cam : m_cameraUniforms)
             {
                 program->set_uniform(program->uniform_attribute(cam.first), cam.second);
             }
-            m_batches[i]->render();
+            batch->render();
         }
     }
 
     void Renderer::clear()
     {
-        for (int i = 0; i < m_batchesInfo.size(); i++)
+        for (auto &batch : m_batches)
         {
-            m_batches[i]->clear();
+            batch->clear();
         }
     }
 

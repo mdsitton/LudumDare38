@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <unordered_map>
+#include <map>
 #include <string>
 
 #include <spdlog/spdlog.h>
@@ -14,32 +15,28 @@ namespace ORCore
 
     std::vector<Vertex> create_rect_mesh(glm::vec4 color);
 
-	struct RenderObject
-	{
-		Mesh mesh;
-		glm::mat4 modelMatrix;
-		int program;
-		int texture;
+    void set_state(std::map<RenderState, int>& state, RenderState stateItem, int value);
+
+    struct RenderObject
+    {
+        Mesh mesh;
+        glm::mat4 modelMatrix;
+        std::map<RenderState, int> state;
         int id; // id of this object in the renderer.
         int batchID;
         RenderObject();
+        void set_state(RenderState stateItem, int value);
         void set_scale(glm::vec3&& scale);
         void set_translation(glm::vec3&& translation);
         void set_primitive_type(Primitive primitive);
         void set_geometry(std::vector<Vertex>&& geometry);
         void set_texture(int _texture);
         void set_program(int _program);
+        void set_point_size(int pointSize);
         void update();
-	};
-
-    struct BatchInfo
-    {
-        bool committed;
-        int program;
-        int texture;
     };
 
-	// Builds and renders batches from objects.
+    // Builds and renders batches from objects.
     class Renderer
     {
     public:
@@ -57,10 +54,9 @@ namespace ORCore
         ~Renderer();
 
     private:
-        int find_batch(int texture, int program);
+        int find_batch(const std::map<RenderState, int>& batchState);
         std::vector<RenderObject> m_objects;
         std::vector<std::unique_ptr<Batch>> m_batches;
-        std::vector<BatchInfo> m_batchesInfo;
         std::unordered_map<std::string, glm::mat4> m_cameraUniforms;
         std::vector<std::unique_ptr<Texture>> m_textures;
         std::vector<std::unique_ptr<ShaderProgram>> m_programs;

@@ -10,8 +10,17 @@ namespace ORCore
         glm::vec2 uv;
         glm::vec4 color;
     };
+
+    enum class RenderState
+    {
+        program,
+        texture,
+        point_size,
+        blend_mode,
+        primitive
+    };
     
-    enum class Primitive
+    enum Primitive
     {
         point,
         line,

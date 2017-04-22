@@ -4,12 +4,13 @@
 
 namespace ORCore
 {
-    Batch::Batch(ShaderProgram *program, Texture *texture, int batchSize)
-    : m_program(program), m_texture(texture), m_batchSize(batchSize), m_matTexBuffer(GL_RGBA32F), m_matTexIndexBuffer(GL_R32UI)
+    Batch::Batch(ShaderProgram *program, Texture *texture, int batchSize, int id)
+    : m_program(program), m_texture(texture), m_batchSize(batchSize), m_id(id), m_matTexBuffer(GL_RGBA32F), m_matTexIndexBuffer(GL_R32UI)
     {
         m_vertices.reserve(batchSize*6); // 32 object each object has 3 verts of 2 values
         m_matrices.reserve(batchSize);
         m_meshMatrixIndex.reserve(batchSize*2); // 32 objects each object has 2 triangles
+        m_committed = false;
         init_gl();
     }
 
@@ -91,13 +92,21 @@ namespace ORCore
     {
         // TODO - Make this smarter about what it updates if performance becomes an issue.
         // Could glBufferSubdata just the parts needed?
+        m_committed = false;
         m_matrices[mesh.transformOffset] = transform;
         std::copy(std::begin(mesh.vertices), std::end(mesh.vertices), std::begin(m_vertices)+mesh.verticesOffset);
+    }
+
+    void Batch::set_state(const std::map<RenderState, int>& state)
+    {
+        m_state = state;
     }
 
     // update buffer objects
     void Batch::commit()
     {
+        m_committed = true;
+
         // When switching to glMapBuffer
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glBufferData(GL_ARRAY_BUFFER, m_vertices.size()*sizeof(Vertex), &m_vertices[0], GL_STATIC_DRAW);
