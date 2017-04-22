@@ -122,7 +122,6 @@ set(CORE_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/timing.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/vfs.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/window.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/animation.hpp
 )
 set(CORE_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/renderer/batch.cpp
@@ -137,7 +136,6 @@ set(CORE_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/vfs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/window.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/extern/glad/src/glad.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/animation.cpp
 )
 
 set(GAME_HEADERS
