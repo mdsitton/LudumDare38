@@ -11,7 +11,7 @@
 namespace ORCore
 {
     class Context;
-    const Uint32 defaultWindowFlag = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+    const Uint32 defaultWindowFlag = SDL_WINDOW_OPENGL;
 
     void init_video();
 
