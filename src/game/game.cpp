@@ -97,7 +97,7 @@ namespace ORGame
         obj.set_primitive_type(ORCore::Primitive::triangle);
         obj.set_geometry(ORCore::create_rect_mesh(glm::vec4{1.0,1.0,1.0,1.0}));
 
-        m_renderer.add_object(obj);
+        m_boxID = m_renderer.add_object(obj);
     }
 
     void GameManager::start()
@@ -176,6 +176,12 @@ namespace ORGame
 
     void GameManager::update()
     {
+        auto obj = m_renderer.get_object(m_boxID);
+
+        obj->set_translation(glm::vec3{(m_width/2.0f)-256, 100.0f+(0.05*m_clock.get_current_time()), 0.0f});
+
+        m_renderer.update_object(m_boxID);
+        m_renderer.commit();
 
         m_renderer.set_camera_transform("ortho", glm::translate(m_ortho, glm::vec3(0.0f, 0.0f, 0.0f))); // translate projection with song
     }

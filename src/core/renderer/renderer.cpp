@@ -64,6 +64,11 @@ namespace ORCore
         program = _program;
     }
 
+    void RenderObject::update()
+    {
+        modelMatrix = glm::scale(glm::translate(glm::mat4(1.0f), mesh.translate), mesh.scale);
+    }
+
 
     Renderer::Renderer()
     : m_logger(spdlog::get("default"))
@@ -88,19 +93,33 @@ namespace ORCore
         BatchInfo batchInfo = {false, program, texture};
         int id = m_batchesInfo.size();
         m_batchesInfo.push_back(batchInfo);
-        m_batches.push_back(std::make_unique<Batch>(m_programs[program].get(), m_textures[texture].get(), 524288));
+        m_batches.push_back(std::make_unique<Batch>(m_programs[program].get(), m_textures[texture].get(), 2048));
         return id;
+    }
+
+    RenderObject* Renderer::get_object(int objID)
+    {
+        return &m_objects[objID];
+    }
+
+    void Renderer::update_object(int objID)
+    {
+        RenderObject& obj = m_objects[objID];
+        obj.update();
+        m_batches[obj.batchID]->update_mesh(obj.mesh, obj.modelMatrix);
     }
 
     int Renderer::add_object(const RenderObject& objIn)
     {
         int batchId = find_batch(objIn.texture, objIn.program);
 
+        int objID = m_objects.size();
         m_objects.push_back(objIn);
         auto &obj = m_objects.back();
 
-        obj.id=m_objects.size();
-        obj.modelMatrix = glm::scale(glm::translate(glm::mat4(1.0f), obj.mesh.translate), obj.mesh.scale);
+        obj.id=objID;
+        obj.batchID = batchId;
+        obj.update();
 
         // try until it gets added to a batch.
         while (m_batches[batchId]->add_mesh(obj.mesh, obj.modelMatrix) != true)
@@ -108,6 +127,7 @@ namespace ORCore
             m_batches[batchId]->commit(); // commit that batch as it is full.
             m_batchesInfo[batchId].committed = true;
             batchId = find_batch(objIn.texture, objIn.program); // find or create the next batch
+            obj.batchID = batchId;
         }
 
         return obj.id;

@@ -62,18 +62,21 @@ namespace ORCore
         m_vertices.clear();
     }
 
-    bool Batch::add_mesh(const Mesh& mesh, glm::mat4& transform)
+    bool Batch::add_mesh(Mesh& mesh, glm::mat4& transform)
     {
         // Optimize this using glMapBuffer? constrain batch with m_batchSize return false if mesh doesnt fit.
         int meshVertexCount = mesh.vertices.size();
         if (((m_vertices.size()/3) + (meshVertexCount/3)) <= m_batchSize)
         {
+
             // Add one index per vertex
             for (int i = 0; i < meshVertexCount/3; i++) // 3 is for 3 vertices in a triangle
             {
                 m_meshMatrixIndex.push_back(m_matrices.size());
             }
 
+            mesh.transformOffset = m_matrices.size();
+            mesh.verticesOffset = m_vertices.size();
             // Condensing the translation will be moved to the object side of things to make rebuilding geometry less cpu intensive.
             m_matrices.push_back(transform);
             m_vertices.insert(std::end(m_vertices), std::begin(mesh.vertices), std::end(mesh.vertices));
@@ -82,9 +85,15 @@ namespace ORCore
         } else {
             return false;
         }
+    }
 
-
-}
+    void Batch::update_mesh(Mesh& mesh, glm::mat4& transform)
+    {
+        // TODO - Make this smarter about what it updates if performance becomes an issue.
+        // Could glBufferSubdata just the parts needed?
+        m_matrices[mesh.transformOffset] = transform;
+        std::copy(std::begin(mesh.vertices), std::end(mesh.vertices), std::begin(m_vertices)+mesh.verticesOffset);
+    }
 
     // update buffer objects
     void Batch::commit()

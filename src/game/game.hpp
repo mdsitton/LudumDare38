@@ -50,6 +50,8 @@ namespace ORGame
         int m_texture2;
         int m_program;
 
+        int m_boxID;
+
         std::shared_ptr<spdlog::logger> m_logger;
 
         std::streamsize m_ss;

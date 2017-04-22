@@ -21,6 +21,7 @@ namespace ORCore
 		int program;
 		int texture;
         int id; // id of this object in the renderer.
+        int batchID;
         RenderObject();
         void set_scale(glm::vec3&& scale);
         void set_translation(glm::vec3&& translation);
@@ -28,6 +29,7 @@ namespace ORCore
         void set_geometry(std::vector<Vertex>&& geometry);
         void set_texture(int _texture);
         void set_program(int _program);
+        void update();
 	};
 
     struct BatchInfo
@@ -43,6 +45,8 @@ namespace ORCore
     public:
         Renderer();
         int add_object(const RenderObject& objIn);
+        RenderObject* get_object(int objID);
+        void update_object(int objID);
         int add_texture(Image&& img);
         int add_program(Shader&& vertex, Shader&& fragment);
         void set_camera_transform(std::string name, glm::mat4&& transform);
