@@ -19,6 +19,7 @@ namespace ORCore
     }
 
     RenderObject::RenderObject()
+    :batchID(-1)
     {
 
     }
@@ -96,6 +97,31 @@ namespace ORCore
 
     }
 
+    void Renderer::init_gl()
+    {
+        // Add the blank texture by default as it will be the default texture.
+        m_defaultTextureID = add_texture(ORCore::loadSTB("data/blank.png"));
+    }
+
+    int Renderer::create_batch(const std::map<RenderState, int>& batchState, int batchSize)
+    {
+        try
+        {
+            int id = m_batches.size();
+            m_batches.push_back(
+                std::make_unique<Batch>(
+                    m_programs[batchState.at(RenderState::program)].get(),
+                    m_textures[batchState.at(RenderState::texture)].get(),
+                    batchSize, id));
+
+            auto& batch = m_batches.back();
+            batch->set_state(batchState);
+            return id;
+        } catch (std::out_of_range &err) {
+            throw std::runtime_error("Error: batch could not be created missing critital data");
+        }
+    }
+
     int Renderer::find_batch(const std::map<RenderState, int>& batchState)
     {
         // Find existing batch that isnt full or already submitted.
@@ -111,29 +137,22 @@ namespace ORCore
             }
         }
 
-        int id = m_batches.size();
 
         m_logger->debug("No batches found creating new batch. Total batches: {}", m_batches.size()+1);
 
-        try
-        {
-            m_batches.push_back(
-                std::make_unique<Batch>(
-                    m_programs[batchState.at(RenderState::program)].get(),
-                    m_textures[batchState.at(RenderState::texture)].get(),
-                    2048, id));
-
-            auto& batch = m_batches.back();
-            batch->set_state(batchState);
-            return id;
-        } catch (std::out_of_range &err) {
-            throw std::runtime_error("Error: batch could not be created missing critital data");
-        }
+        return create_batch(batchState, 2048);
     }
 
     RenderObject* Renderer::get_object(int objID)
     {
         return &m_objects[objID];
+    }
+
+
+    void Renderer::clear_object_batch(int objID)
+    {
+        RenderObject& obj = m_objects[objID];
+        m_batches[obj.batchID]->clear();
     }
 
     void Renderer::update_object(int objID)
@@ -146,16 +165,25 @@ namespace ORCore
     int Renderer::add_object(const RenderObject& objIn)
     {
 
-        int batchId = find_batch(objIn.state);
-
         int objID = m_objects.size();
         m_objects.push_back(objIn);
         auto &obj = m_objects.back();
+
+        auto &state = obj.state;
+
+        // if there is no texture set it to the default.
+        if (state.find(RenderState::texture) == state.end())
+        {
+            state.insert({RenderState::texture, m_defaultTextureID});
+        }
+
+        int batchId = find_batch(state);
 
         obj.id=objID;
         obj.batchID = batchId;
         obj.update();
 
+        // dont add to batch if we dont have geometry
         // try until it gets added to a batch.
         while (m_batches[batchId]->add_mesh(obj.mesh, obj.modelMatrix) != true)
         {
@@ -165,6 +193,43 @@ namespace ORCore
         }
 
         return obj.id;
+    }
+
+    int Renderer::add_object_dedibatch(const RenderObject& objIn)
+    {
+        int objID = m_objects.size();
+        m_objects.push_back(objIn);
+        auto &obj = m_objects.back();
+
+        auto &state = obj.state;
+
+        // if there is no texture set it to the default.
+        if (state.find(RenderState::texture) == state.end())
+        {
+            state.insert({RenderState::texture, m_defaultTextureID});
+        }
+
+        int batchId;
+
+        if (obj.batchID == -1)
+        {
+            batchId = create_batch(state, 2048);
+        } else {
+            batchId = obj.batchID;
+        }
+
+        m_batches[batchId]->commit(); // bit of a hack
+
+        obj.id=objID;
+        obj.batchID = batchId;
+        obj.update();
+        return obj.id;
+    }
+
+    int Renderer::readd_object(int objID)
+    {
+        auto &obj = m_objects[objID];
+        return m_batches[obj.batchID]->add_mesh(obj.mesh, obj.modelMatrix);
     }
 
     int Renderer::add_texture(Image&& img)

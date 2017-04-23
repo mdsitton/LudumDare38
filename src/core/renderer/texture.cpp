@@ -164,8 +164,8 @@ namespace ORCore
         glGenTextures(1, &m_oglTexID);
         glBindTexture(m_texTargetType, m_oglTexID);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexParameteri(m_texTargetType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(m_texTargetType, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(m_texTargetType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(m_texTargetType, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
         glBindTexture(m_texTargetType, 0);
     }
 

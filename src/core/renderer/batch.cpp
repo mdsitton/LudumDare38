@@ -58,6 +58,7 @@ namespace ORCore
 
     void Batch::clear()
     {
+        m_committed = false;
         m_meshMatrixIndex.clear();
         m_matrices.clear();
         m_vertices.clear();
@@ -67,7 +68,7 @@ namespace ORCore
     {
         // Optimize this using glMapBuffer? constrain batch with m_batchSize return false if mesh doesnt fit.
         int meshVertexCount = mesh.vertices.size();
-        if (((m_vertices.size()/3) + (meshVertexCount/3)) <= m_batchSize)
+        if (((m_vertices.size()/mesh.vertexSize) + (meshVertexCount/mesh.vertexSize)) <= m_batchSize)
         {
 
             // Add one index per vertex
@@ -81,6 +82,9 @@ namespace ORCore
             // Condensing the translation will be moved to the object side of things to make rebuilding geometry less cpu intensive.
             m_matrices.push_back(transform);
             m_vertices.insert(std::end(m_vertices), std::begin(mesh.vertices), std::end(mesh.vertices));
+
+            mesh.transformOffsetEnd = m_matrices.size();
+            mesh.verticesOffsetEnd = m_vertices.size();
 
             return true;
         } else {
@@ -107,26 +111,29 @@ namespace ORCore
     {
         m_committed = true;
 
-        // When switching to glMapBuffer
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER, m_vertices.size()*sizeof(Vertex), &m_vertices[0], GL_STATIC_DRAW);
+        if (m_vertices.size() > 0) {
 
-        glBindBuffer(GL_TEXTURE_BUFFER, m_matBufferObject);
-        glBufferData(GL_TEXTURE_BUFFER, m_matrices.size()*sizeof(glm::mat4), &m_matrices[0], GL_STATIC_DRAW);
-        m_matTexBuffer.assign_buffer(m_matBufferObject);
+            // When switching to glMapBuffer
+            glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+            glBufferData(GL_ARRAY_BUFFER, m_vertices.size()*sizeof(Vertex), &m_vertices[0], GL_STATIC_DRAW);
 
-        glBindBuffer(GL_TEXTURE_BUFFER, m_matIndexBufferObject);
-        glBufferData(GL_TEXTURE_BUFFER, m_meshMatrixIndex.size()*sizeof(unsigned int), &m_meshMatrixIndex[0], GL_STATIC_DRAW);
-        m_matTexIndexBuffer.assign_buffer(m_matIndexBufferObject);
+            glBindBuffer(GL_TEXTURE_BUFFER, m_matBufferObject);
+            glBufferData(GL_TEXTURE_BUFFER, m_matrices.size()*sizeof(glm::mat4), &m_matrices[0], GL_STATIC_DRAW);
+            m_matTexBuffer.assign_buffer(m_matBufferObject);
 
-        glBindBuffer(GL_TEXTURE_BUFFER, 0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_TEXTURE_BUFFER, m_matIndexBufferObject);
+            glBufferData(GL_TEXTURE_BUFFER, m_meshMatrixIndex.size()*sizeof(unsigned int), &m_meshMatrixIndex[0], GL_STATIC_DRAW);
+            m_matTexIndexBuffer.assign_buffer(m_matIndexBufferObject);
+
+            glBindBuffer(GL_TEXTURE_BUFFER, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
 
     }
 
     void Batch::render()
     {
-        if (m_matrices.size() > 0) {
+        if (m_vertices.size() > 0) {
 
             glBindVertexArray(m_vao);
 
@@ -135,7 +142,23 @@ namespace ORCore
             m_matTexBuffer.bind(m_matBufTexID);
             m_matTexIndexBuffer.bind(m_matIndexBufTexID);
 
-            glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+            GLenum gPrim;
+            auto &prim = m_state.find(RenderState::primitive);
+            if (prim == m_state.end())
+            {
+                gPrim = GL_POINTS;
+            } else if (prim->second == Primitive::triangle)
+            {
+                gPrim = GL_TRIANGLES;
+            } else if (prim->second == Primitive::line)
+            {
+                gPrim = GL_LINES;
+            } if (prim->second == Primitive::point)
+            {
+                gPrim = GL_POINTS;
+            } 
+
+            glDrawArrays(gPrim, 0, m_vertices.size());
 
         }
 

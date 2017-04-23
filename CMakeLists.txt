@@ -3,7 +3,7 @@
 ####################################################################
 cmake_minimum_required(VERSION 3.0)
 
-project (LD38)
+project (PlanetGame)
 
 set(APPLE_APP_NAME "ld38.app")
 
@@ -114,6 +114,7 @@ set(CORE_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/renderer/renderer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/renderer/shader.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/renderer/texture.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/particles.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/context.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/events.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/keycode.hpp
@@ -129,6 +130,7 @@ set(CORE_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/renderer/shader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/renderer/texture.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/context.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/particles.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/events.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/keycode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core/stringutils.cpp
@@ -164,24 +166,24 @@ source_group("src\\game"  FILES ${GAME_SOURCE}  ${GAME_HEADERS})
 
 add_library(ORCore-obj OBJECT ${CORE_SOURCE})
 
-add_executable(ld38 $<TARGET_OBJECTS:ORCore-obj>
+add_executable(planetgame $<TARGET_OBJECTS:ORCore-obj>
                           ${GAME_SOURCE}
                           ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-target_link_libraries(ld38 ${LIBRARIES})
-install(TARGETS       ld38 DESTINATION bin)
+target_link_libraries(planetgame ${LIBRARIES})
+install(TARGETS       planetgame DESTINATION bin)
 
 set(BINARY_DATA_DIR ${CMAKE_BINARY_DIR}/data)
 set(SOURCE_DATA_DIR ${CMAKE_SOURCE_DIR}/data)
 
-add_custom_command(TARGET ld38 PRE_BUILD
+add_custom_command(TARGET planetgame PRE_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory
                 ${BINARY_DATA_DIR})
-add_custom_command(TARGET ld38 PRE_BUILD
+add_custom_command(TARGET planetgame PRE_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${SOURCE_DATA_DIR} $<TARGET_FILE_DIR:ld38>/data/)
+                ${SOURCE_DATA_DIR} $<TARGET_FILE_DIR:planetgame>/data/)
 
 
 if(OSX_APP_BUNDLE)
-    set_target_properties(ld38 PROPERTIES MACOSX_BUNDLE TRUE)
+    set_target_properties(planetgame PROPERTIES MACOSX_BUNDLE TRUE)
 endif()

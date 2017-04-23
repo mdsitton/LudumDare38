@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
         // Probably will want to switch this to ostream_sink_mt once
         // the vfs is setup fully.
-        sinks.push_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>("openrhythm.log"));
+        sinks.push_back(std::make_shared<spdlog::sinks::simple_file_sink_mt>("planetgame.log"));
 
         logger = std::make_shared<spdlog::logger>("default", std::begin(sinks), std::end(sinks));
         spdlog::register_logger(logger);
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
     }
 
     try {
-        ORGame::GameManager game;
+        PlanetGame::GameManager game;
         game.start();
     } catch (std::runtime_error &err) {
         logger->critical("Runtime Error:\n{}", err.what());

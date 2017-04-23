@@ -41,7 +41,11 @@ namespace ORCore
     {
     public:
         Renderer();
+        void init_gl();
+        void clear_object_batch(int objID);
+        int add_object_dedibatch(const RenderObject& objIn);
         int add_object(const RenderObject& objIn);
+        int readd_object(int objID);
         RenderObject* get_object(int objID);
         void update_object(int objID);
         int add_texture(Image&& img);
@@ -54,6 +58,7 @@ namespace ORCore
         ~Renderer();
 
     private:
+        int create_batch(const std::map<RenderState, int>& batchState, int batchSize);
         int find_batch(const std::map<RenderState, int>& batchState);
         std::vector<RenderObject> m_objects;
         std::vector<std::unique_ptr<Batch>> m_batches;
@@ -61,5 +66,6 @@ namespace ORCore
         std::vector<std::unique_ptr<Texture>> m_textures;
         std::vector<std::unique_ptr<ShaderProgram>> m_programs;
         std::shared_ptr<spdlog::logger> m_logger;
+        int m_defaultTextureID;
     };
 }

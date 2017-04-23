@@ -34,6 +34,8 @@ namespace ORCore
         Primitive primitive;
         int transformOffset;
         int verticesOffset;
+        int transformOffsetEnd;
+        int verticesOffsetEnd;
         int vertexSize; // Number of vertices used for the primitive type of this mesh. points = 1, lines = 2, triangles = 3
         std::vector<Vertex> vertices;
     };

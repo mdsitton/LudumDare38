@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 #include "vfs.hpp"
-namespace ORGame
+namespace PlanetGame
 {
     GameManager::GameManager()
     :m_width(800),
@@ -15,7 +15,8 @@ namespace ORGame
     m_window(m_width, m_height, m_fullscreen, m_title),
     m_context(3, 2, 0),
     m_eventManager(),
-    m_eventPump(&m_eventManager)
+    m_eventPump(&m_eventManager),
+    m_particles(&m_renderer)
     {
         m_running = true;
 
@@ -64,6 +65,8 @@ namespace ORGame
 
         m_ss = std::cout.precision();
 
+        m_renderer.init_gl();
+
         ORCore::ShaderInfo vertInfo {GL_VERTEX_SHADER, "./data/shaders/main.vs"};
         ORCore::ShaderInfo fragInfo {GL_FRAGMENT_SHADER, "./data/shaders/main.fs"};
 
@@ -71,12 +74,17 @@ namespace ORGame
         m_texture = m_renderer.add_texture(ORCore::loadSTB("data/blank.png"));
         m_texture2 = m_renderer.add_texture(ORCore::loadSTB("data/planet1.png"));
 
+        m_particles.set_program(m_program);
+        m_particles.init_gl();
+
         resize(m_width, m_height);
+
+        m_particles.register_emitter(&m_emitter);
 
         prep_render_obj();
         m_renderer.commit();
 
-        glClearColor(0.5, 0.5, 0.5, 1.0);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
     }
 
     GameManager::~GameManager()
@@ -92,8 +100,8 @@ namespace ORGame
         obj.set_texture(m_texture2);
         obj.set_program(m_program);
 
-        obj.set_scale(glm::vec3{512.0f, 100.0f, 0.0f});
-        obj.set_translation(glm::vec3{(m_width/2.0f)-256, 100.0f, 0.0f}); // center the line on the screen
+        obj.set_scale(glm::vec3{100.0f, 100.0f, 0.0f});
+        obj.set_translation(glm::vec3{(m_width/2.0f), 100.0f, 0.0f}); // center the line on the screen
         obj.set_primitive_type(ORCore::Primitive::triangle);
         obj.set_geometry(ORCore::create_rect_mesh(glm::vec4{1.0,1.0,1.0,1.0}));
 
@@ -180,6 +188,14 @@ namespace ORGame
         auto obj = m_renderer.get_object(m_boxID);
 
         obj->set_translation(glm::vec3{(m_width/2.0f)-256, 100.0f+(0.05*m_clock.get_current_time()), 0.0f});
+
+
+        m_emitter.set_location(m_mouseX, m_mouseY);
+        m_emitter.set_velocity(glm::vec2{0.0001, 0.0001});
+
+        m_particles.simulate_particles(dt);
+
+        m_particles.render_update();
 
         m_renderer.update_object(m_boxID);
         m_renderer.commit();

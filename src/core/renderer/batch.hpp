@@ -25,7 +25,7 @@ namespace ORCore
         void render();
         ~Batch();
 
-        std::map<RenderState, int>& get_state()
+        const std::map<RenderState, int>& get_state()
         {
             return m_state;
         }

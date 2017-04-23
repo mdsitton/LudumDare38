@@ -9,10 +9,11 @@
 #include "renderer/shader.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/texture.hpp"
+#include "particles.hpp"
 
 #include <spdlog/spdlog.h>
 
-namespace ORGame
+namespace PlanetGame
 {
     class GameManager
     {
@@ -45,6 +46,8 @@ namespace ORGame
         ORCore::EventPumpSDL2 m_eventPump;
         ORCore::Renderer m_renderer;
         ORCore::Listener m_lis;
+        ORCore::ParticleManager m_particles;
+        ORCore::PointEmitter m_emitter;
 
         int m_texture;
         int m_texture2;
