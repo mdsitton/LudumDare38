@@ -156,9 +156,21 @@ namespace ORCore
             } if (prim->second == Primitive::point)
             {
                 gPrim = GL_POINTS;
-            } 
+            }
+
+            auto &pointSize = m_state.find(RenderState::point_size);
+            if (pointSize != m_state.end())
+            {
+                glPointSize(pointSize->second);
+            }
 
             glDrawArrays(gPrim, 0, m_vertices.size());
+
+            if (pointSize != m_state.end())
+            {
+                glPointSize(1.0f);
+            }
+
 
         }
 

@@ -117,7 +117,7 @@ namespace PlanetGame
             m_fpsTime += dt;
             m_eventPump.process();
 
-            update(dt);
+            update(dt*0.001);
             render();
 
             do

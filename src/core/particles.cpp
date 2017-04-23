@@ -8,10 +8,10 @@ namespace ORCore
 
     PointEmitter::PointEmitter()
     :m_rng(std::random_device()()),
-    m_dispersion(-0.1f, 0.1f),
+    m_dispersion(-5.0f, 5.0f),
     m_posX(0),
     m_posY(0),
-    m_creationRate(1)
+    m_creationRate(6000)
     {
     }
 
@@ -41,22 +41,22 @@ namespace ORCore
         int count = m_creationRate*dt;
         for (int i = 0; i < count; i++)
         {
-            m_particles.push_back({1.0f, 5.0, glm::vec2{m_dispersion(m_rng), m_dispersion(m_rng)} + m_velocity, m_currPos});
+            m_particles.push_back({1.0f, 7.0, glm::vec2{m_dispersion(m_rng), m_dispersion(m_rng)} + m_velocity, m_currPos});
         }
     }
 
     void PointEmitter::collect_particles()
     {
 
-        // auto test = [](auto& x)
-        // {
-        //     return x.lifetime <= 0.0;
-        // };
+        auto test = [](auto& x)
+        {
+            return x.lifetime <= 0.0;
+        };
 
-        // auto remove = std::remove_if(m_particles.begin(), m_particles.end(), test);
+        auto remove = std::remove_if(m_particles.begin(), m_particles.end(), test);
 
 
-        // m_particles.erase(remove, m_particles.end());
+        m_particles.erase(remove, m_particles.end());
     }
 
 
@@ -79,7 +79,7 @@ namespace ORCore
         obj.set_scale(glm::vec3{1.0f, 1.0f, 0.0f});
         obj.set_translation(glm::vec3{0.0f, 0.0f, 0.0f});
         obj.set_primitive_type(ORCore::Primitive::point);
-        obj.set_point_size(4);
+        obj.set_point_size(18);
 
         m_objID = m_renderer->add_object_dedibatch(obj);
     }

@@ -213,7 +213,7 @@ namespace ORCore
 
         if (obj.batchID == -1)
         {
-            batchId = create_batch(state, 2048);
+            batchId = create_batch(state, 262144);
         } else {
             batchId = obj.batchID;
         }
